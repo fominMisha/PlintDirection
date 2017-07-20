@@ -1,0 +1,143 @@
+unit Main;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, DBCtrls, Grids, DBGrids, DB, ADODB, StdCtrls, ExtCtrls, Menus;
+
+type
+  TForm1 = class(TForm)
+    qNodes: TADOQuery;
+    dsNodes: TDataSource;
+    qCU: TADOQuery;
+    dsCU: TDataSource;
+    qPlintDirections: TADOQuery;
+    dsPlintDirections: TDataSource;
+    pmNodes: TPopupMenu;
+    pmCU: TPopupMenu;
+    nInsertNode: TMenuItem;
+    nDeleteNode: TMenuItem;
+    nInsertCU: TMenuItem;
+    nDeleteCU: TMenuItem;
+    Panel1: TPanel;
+    gb_Nodes: TGroupBox;
+    lcbNodes: TDBLookupListBox;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    gb_PlintDirection: TGroupBox;
+    DBGrid3: TDBGrid;
+    DBNavigator1: TDBNavigator;
+    gb_CU: TGroupBox;
+    DBGrid1: TDBGrid;
+    Splitter1: TSplitter;
+    Splitter2: TSplitter;
+    MainMenu1: TMainMenu;
+    Pack1: TMenuItem;
+    ViewDirection1: TMenuItem;
+    procedure lcbNodesClick(Sender: TObject);
+    procedure Pack1Click(Sender: TObject);
+    procedure ViewDirection1Click(Sender: TObject);
+    procedure nInsertNodeClick(Sender: TObject);
+    procedure nDeleteCUClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+uses DataModule, Directions;
+
+procedure TForm1.lcbNodesClick(Sender: TObject);
+begin
+  qCU.Close;
+  qCU.SQL.Text := 'select cu.ID_CU, cu.Name, cu.Capacity from dbo.tmp_pd_Connection_Unit as cu where cu.ID_Node = :ID_Node';
+  qCU.Parameters.ParamByName('ID_Node').Value := lcbNodes.KeyValue;
+  qCU.Open;
+
+  qPlintDirections.Close;
+  qPlintDirections.SQL.Text :=
+      ' select pd.ID_CU_1, pd.PlintNumber_1, pd.ID_CU_2, pd.PlintNumber_2'
+    + ' from dbo.tmp_pd_Node as n'
+    + '   left join dbo.tmp_pd_Connection_Unit as cu1 on cu1.ID_Node = n.ID_Node'
+    + '   left join dbo.tmp_pd_Connection_Unit as cu2 on cu1.ID_Node = n.ID_Node'
+    + '   join dbo.tmp_pd_PlintDirection as pd on pd.ID_CU_1 = cu1.ID_CU and pd.ID_CU_2 = cu2.ID_CU'
+    + ' where n.ID_Node = :ID_Node';
+  qPlintDirections.Parameters.ParamByName('ID_Node').Value := lcbNodes.KeyValue;
+  qPlintDirections.Open;
+end;
+
+procedure TForm1.Pack1Click(Sender: TObject);
+begin
+  if (frmDirections = nil) then Application.CreateForm(TfrmDirections, frmDirections);
+  frmDirections.spPlintDirectionsPack.Close;
+  frmDirections.spPlintDirectionsPack.Parameters.Clear;
+  frmDirections.spPlintDirectionsPack.Parameters.Refresh;
+  frmDirections.spPlintDirectionsPack.Parameters.ParamByName('@ID_Node').Value := lcbNodes.KeyValue;
+  frmDirections.spPlintDirectionsPack.Parameters.ParamByName('@Action').Value := 1;
+  frmDirections.spPlintDirectionsPack.Open;
+
+  frmDirections.spDirections.Close;
+  frmDirections.spDirections.Parameters.Clear;
+  frmDirections.spDirections.Parameters.Refresh;
+  frmDirections.spDirections.Parameters.ParamByName('@ID_Node').Value := lcbNodes.KeyValue;
+  frmDirections.spDirections.Open;
+
+  frmDirections.ShowModal;
+end;
+
+procedure TForm1.ViewDirection1Click(Sender: TObject);
+begin
+  if (frmDirections = nil) then Application.CreateForm(TfrmDirections, frmDirections);
+  frmDirections.spPlintDirectionsPack.Close;
+  frmDirections.spPlintDirectionsPack.Parameters.Clear;
+  frmDirections.spPlintDirectionsPack.Parameters.Refresh;
+  frmDirections.spPlintDirectionsPack.Parameters.ParamByName('@ID_Node').Value := lcbNodes.KeyValue;
+  frmDirections.spPlintDirectionsPack.Open;
+
+  frmDirections.spDirections.Close;
+  frmDirections.spDirections.Parameters.Clear;
+  frmDirections.spDirections.Parameters.Refresh;
+  frmDirections.spDirections.Parameters.ParamByName('@ID_Node').Value := lcbNodes.KeyValue;
+  frmDirections.spDirections.Open;
+
+  frmDirections.ShowModal;
+end;
+
+procedure TForm1.nInsertNodeClick(Sender: TObject);
+var
+  spDelNode: TADOStoredProc;
+begin
+  spDelNode.Close;
+  spDelNode.Parameters.Clear;
+  spDelNode.ProcedureName := 'dbo.p_Node_Delete';
+  spDelNode.Parameters.Refresh;
+  spDelNode.Parameters.ParamByName('@ID_Node').Value := lcbNodes.KeyValue;
+  spDelNode.ExecProc;
+  qNodes.Close;
+  qNodes.Open;
+end;
+
+procedure TForm1.nDeleteCUClick(Sender: TObject);
+var
+  spDelCU: TADOStoredProc;
+begin
+  spDelCU.Close;
+  spDelCU.Parameters.Clear;
+  spDelCU.ProcedureName := 'dbo.p_Connection_Unit_Delete';
+  spDelCU.Parameters.Refresh;
+  spDelCU.Parameters.ParamByName('@ID_Node').Value := lcbNodes.KeyValue;
+  spDelCU.ExecProc;
+  qCU.Close;
+  qCU.Open;
+
+end;
+
+end.

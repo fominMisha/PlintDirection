@@ -1,0 +1,37 @@
+unit Directions;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ADODB, DB, StdCtrls, DBCtrls, Grids, DBGrids, ExtCtrls;
+
+type
+  TfrmDirections = class(TForm)
+    Panel1: TPanel;
+    Splitter1: TSplitter;
+    Panel2: TPanel;
+    GroupBox1: TGroupBox;
+    GroupBox2: TGroupBox;
+    DBGrid1: TDBGrid;
+    spPlintDirectionsPack: TADOStoredProc;
+    DataSource1: TDataSource;
+    DataSource2: TDataSource;
+    DBLookupListBox1: TDBLookupListBox;
+    spDirections: TADOStoredProc;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmDirections: TfrmDirections;
+
+implementation
+
+{$R *.dfm}
+
+uses DataModule;
+
+end.
